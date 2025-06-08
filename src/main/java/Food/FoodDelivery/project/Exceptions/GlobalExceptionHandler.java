@@ -1,0 +1,89 @@
+package Food.FoodDelivery.project.Exceptions;
+
+import Food.FoodDelivery.project.DTO.ResponseDTO.CommonResponse;
+import jakarta.validation.ConstraintViolationException;
+import org.springframework.http.*;
+import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.validation.*;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.nio.file.AccessDeniedException;
+import java.util.*;
+
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<CommonResponse> handleResponseStatusException(ResponseStatusException ex) {
+        String message = ex.getReason();
+        HttpStatus status = (HttpStatus) ex.getStatusCode();
+        return new ResponseEntity<>(CommonResponse.error(message), status);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<CommonResponse> handleGeneralException(Exception ex) {
+        CommonResponse errorResponse = CommonResponse.error(ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<CommonResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
+        return ResponseEntity.badRequest().body(CommonResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+
+        for (ObjectError error : ex.getBindingResult().getAllErrors()) {
+            if (error instanceof FieldError fieldError) {
+                errors.put(fieldError.getField(), fieldError.getDefaultMessage());
+            } else {
+                errors.put("validation", error.getDefaultMessage());
+            }
+        }
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
+
+    // for @RequestParam or query parameters.
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<Map<String, String>> handleConstraintViolationException(ConstraintViolationException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getConstraintViolations().forEach(cv -> {
+            String field = cv.getPropertyPath().toString();
+            field = field.contains(".") ? field.substring(field.lastIndexOf('.') + 1) : field;
+            errors.put(field, cv.getMessage());
+        });
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<CommonResponse> handleAuthorizationDenied(AuthorizationDeniedException ex) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(CommonResponse.error("You are not authorized for this request"));
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<CommonResponse> handleAccessDeniedException(AccessDeniedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(CommonResponse.error("Access denied: You do not have permission to access this resource"));
+    }
+
+    @ExceptionHandler(PaymentException.class)
+    public ResponseEntity<CommonResponse> handlePaymentException(PaymentException ex) {
+        String combinedMessage = ex.getErrorCode() + " - " + ex.getMessage();
+        return ResponseEntity
+                .status(ex.getStatus())
+                .body(CommonResponse.error(combinedMessage));
+    }
+
+    @ExceptionHandler(RazorpayException.class)
+    public ResponseEntity<CommonResponse> handleRazorpayException(RazorpayException ex) {
+        String combinedMessage = ex.getErrorCode() + " - " + ex.getMessage();
+        return ResponseEntity
+                .status(ex.getStatus())
+                .body(CommonResponse.error(combinedMessage));
+    }
+}

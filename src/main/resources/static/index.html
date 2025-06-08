@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Razorpay Payment</title>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .payments-container {
+            background-color: #ffffff;
+            padding: 30px 40px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #1976d2;
+            margin-bottom: 25px;
+        }
+
+        label {
+            font-weight: 500;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 18px;
+            border: 2px solid #bbdefb;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #1976d2;
+            color: white;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0d47a1;
+        }
+
+        .note {
+            margin-top: 15px;
+            font-size: 13px;
+            color: #555;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="payments-container">
+    <h2>Pay with Razorpay</h2>
+    <form id="paymentForm">
+        <label for="amount">Amount (INR):</label>
+        <input type="number" id="amount" name="amount" required min="1" placeholder="Enter amount">
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required placeholder="Enter your email">
+
+        <label for="contact">Contact Number:</label>
+        <input type="tel" id="contact" name="contact" required placeholder="Enter your contact number" pattern="[0-9]{10}">
+
+        <button type="button" onclick="makePayment()">Pay Now</button>
+        <div class="note">You will be redirected to Razorpay Checkout</div>
+    </form>
+</div>
+
+<script>
+    async function makePayment() {
+        const amount = document.getElementById('amount').value;
+        const email = document.getElementById('email').value;
+        const contact = document.getElementById('contact').value;
+        const currency = "INR";
+        const orderId = 13;
+
+        if (!amount || amount <= 0) {
+            alert("Please enter a valid amount.");
+            return;
+        }
+
+        if (!/^\d{10}$/.test(contact)) {
+            alert("Please enter a valid 10-digit contact number.");
+            return;
+        }
+
+        const jwtToken = "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiQURNSU4iLCJwZXJtaXNzaW9ucyI6WyJST0xFX0RFTEVURSIsIkNBVEVHT1JZX0RFTEVURSIsIkZPT0RfVkFSSUFOVF9DUkVBVEUiLCJGT09EX1VQREFURSIsIkZPT0RfQ1JFQVRFIiwiQ0FURUdPUllfR0VUIiwiRk9PRF9WQVJJQU5UX1VQREFURSIsIlJPTEVfR0VUIiwiRk9PRF9ERUxFVEUiLCJST0xFX1VQREFURSIsIkNBVEVHT1JZX0NSRUFURSIsIkNBVEVHT1JZX1VQREFURSIsIkZPT0RfVkFSSUFOVF9ERUxFVEUiLCJGT09EX0dFVCJdLCJzdWIiOiIzYzE5MjM2YS02MzE3LTQ4ZTktYmZhNC0yYjc4ZWUwMDMzYWIiLCJpc3MiOiJmb29kLWFwcCIsImlhdCI6MTc0OTM3MDc3MiwiZXhwIjoxNzQ5NDA2NzcyfQ.xNtRnSBnkm8ME0T1MvN5j5lnaUckSkr4Evbn77Jaibk";
+        const response = await fetch("http://localhost:8083/api/payments/create", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${jwtToken}`
+            },
+            body: JSON.stringify({
+                amount: parseFloat(amount),
+                currency: currency,
+                orderId: orderId
+            })
+        });
+
+        if (!response.ok) {
+            alert("Failed to create payments orders. Please try again.");
+            return;
+        }
+
+        const data = await response.json();
+        const razorpayOrderId = data.razorpayOrderId || data.orderId || data.id;
+        const amountInPaise = data.amountInPaise || data.amount * 100;
+        const returnedCurrency = data.currency || "INR";
+
+        const options = {
+            key: "rzp_test_Cocj2HTbsZeFHC",
+            amount: amountInPaise,
+            currency: returnedCurrency,
+            name: "Bhojan-pani",
+            description: "Secure Razorpay Payment",
+            order_id: razorpayOrderId,
+            handler: async function (response) {
+                try {
+                    const razorpayOrderId = response.razorpay_order_id;
+                    const razorpayPaymentId = response.razorpay_payment_id;
+                    const razorpaySignature = response.razorpay_signature;
+
+                    const verifyRes = await fetch("http://localhost:8083/api/payments/verify", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/x-www-form-urlencoded",
+                            "Authorization": `Bearer ${jwtToken}`
+                        },
+                        body: new URLSearchParams({
+                            razorpayPaymentId,
+                            razorpayOrderId,
+                            razorpaySignature
+                        })
+                    });
+
+                    if (verifyRes.ok) {
+                        window.location.href = "success.html";
+                    } else {
+                        console.error("Payment verification failed:", await verifyRes.text());
+                        window.location.href = "failure.html";
+                    }
+                } catch (e) {
+                    console.error("Error during payments verification:", e);
+                    window.location.href = "failure.html";
+                }
+            },
+            prefill: {
+                name: "User",
+                email: email,
+                contact: contact
+            },
+            theme: {
+                color: "#1976d2"
+            }
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.open();
+    }
+</script>
+
+</body>
+</html>
