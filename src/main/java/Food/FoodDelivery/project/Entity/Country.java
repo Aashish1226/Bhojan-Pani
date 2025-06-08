@@ -48,7 +48,7 @@ public class Country {
     private List<Timezone> timezones = new ArrayList<>();
 
     @JsonProperty("region_id")
-    private Integer regionId;
+    private Long regionId;
 
     @JsonProperty("subregion_id")
     @Column(name = "subregion_id")
