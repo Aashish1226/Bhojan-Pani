@@ -1,30 +1,26 @@
 package Food.FoodDelivery.project.DTO.ResponseDTO;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
-@Setter
 public class CommonResponse {
 
-    private String status;
-    private String message;
+    private final String status;
+    private final String message;
+    private final String errorCode;
 
-    public CommonResponse(String status , String message){
+    public CommonResponse(String status, String message, String errorCode) {
         this.status = status;
         this.message = message;
+        this.errorCode = errorCode;
     }
 
-    public static CommonResponse success(String message){return new CommonResponse("Success" , message);}
-    public static CommonResponse error(String message) {
-        return new CommonResponse("error", message);
+    public static CommonResponse success(String message) {
+        return new CommonResponse("success", message, null);
     }
-    public String toJson(){
-        try {
-            return new ObjectMapper().writeValueAsString(this);
-        } catch (Exception e) {
-            return "{\"message\": \"Error converting to JSON\"}";
-        }
+
+    public static CommonResponse error(String message, String errorCode) {
+        return new CommonResponse("error", message, errorCode);
     }
 }

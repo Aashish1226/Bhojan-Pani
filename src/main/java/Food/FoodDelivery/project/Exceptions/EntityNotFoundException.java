@@ -4,7 +4,6 @@ import lombok.*;
 import org.springframework.http.HttpStatus;
 
 @Getter
-@Setter
 public class EntityNotFoundException extends RuntimeException {
 
     private final HttpStatus status;
@@ -27,6 +26,5 @@ public class EntityNotFoundException extends RuntimeException {
         this.status = status;
         this.errorCode = errorCode;
     }
-
 
 }
