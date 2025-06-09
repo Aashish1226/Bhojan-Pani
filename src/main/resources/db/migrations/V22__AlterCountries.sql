@@ -1,0 +1,2 @@
+ALTER TABLE countries
+MODIFY COLUMN region_id BIGINT;
