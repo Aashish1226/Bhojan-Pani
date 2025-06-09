@@ -6,7 +6,7 @@ import Food.FoodDelivery.project.Entity.Orders;
 import Food.FoodDelivery.project.Entity.Payments;
 import Food.FoodDelivery.project.Entity.*;
 import Food.FoodDelivery.project.Enum.*;
-import Food.FoodDelivery.project.Exceptions.RazorpayException;
+import Food.FoodDelivery.project.Exceptions.RazorPayCustomException;
 import Food.FoodDelivery.project.Exceptions.*;
 import Food.FoodDelivery.project.Mapper.PaymentMapper;
 import Food.FoodDelivery.project.Repository.*;
@@ -17,6 +17,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.*;
+import com.razorpay.RazorpayException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -81,10 +82,10 @@ public class PaymentService {
 
         } catch (RazorpayException e) {
             log.error("Failed to create Razorpay order: {}", e.getMessage(), e);
-            throw new RazorpayException("Failed to create Razorpay order: " + e.getMessage(), e);
+            throw new RazorPayCustomException("Failed to create Razorpay order : " + e.getMessage());
         } catch (Exception e) {
             log.error("Failed to create payment: {}", e.getMessage(), e);
-            throw new PaymentException("Failed to create payment : " +  e);
+            throw new PaymentException("Failed to create payment : " + e.getMessage());
         }
     }
 
@@ -126,7 +127,7 @@ public class PaymentService {
                 .orElseThrow(() -> new EntityNotFoundException("Order not found: " + requestDTO.getOrderId()));
 
         if (!orders.getCart().getUser().getUserId().equals(userUUID)) {
-            throw new SecurityException("Order does not belong to user");
+            throw new CustomSecurityException("Order does not belong to user");
         }
 
         return orders;
@@ -173,7 +174,7 @@ public class PaymentService {
 
             if (!isValidSignature) {
                 handleFailureEmail(payments);
-                throw new RazorpayException("Invalid Razorpay signature");
+                throw new RazorPayCustomException("Invalid Razorpay signature");
             }
 
             try {
@@ -192,9 +193,9 @@ public class PaymentService {
                     payments.setStatus(PaymentStatus.PENDING);
                 }
 
-            } catch (com.razorpay.RazorpayException e) {
+            } catch (RazorpayException e) {
                 handleFailureEmail(payments);
-                throw new RazorpayException("Failed to fetch Razorpay payment: " + e.getMessage(), e);
+                throw new RazorPayCustomException("Failed to fetch Razorpay payment: " + e.getMessage());
             }
 
             payments.setRazorpayPaymentId(razorpayPaymentId);
@@ -222,8 +223,8 @@ public class PaymentService {
 
             return paymentMapper.toResponseDTO(payments);
 
-        } catch (RuntimeException e) {
-            throw e;
+        } catch (RazorpayException e) {
+            throw new RazorPayCustomException("Razor pay exception : " + e.getMessage());
         } catch (Exception e) {
             log.error("Unexpected error during payment verification: {}", e.getMessage(), e);
             throw new PaymentException("Unexpected error during payment verification: " + e.getMessage());
@@ -277,7 +278,7 @@ public class PaymentService {
         } catch (Exception e) {
             handleFailureEmail(payments);
             log.error("Error extracting Razorpay data: {}", e.getMessage(), e);
-            throw new RazorpayException("Error extracting Razorpay data: " + e.getMessage(), e);
+            throw new RazorPayCustomException("Error extracting Razorpay data: " + e.getMessage());
         }
     }
 
@@ -295,8 +296,6 @@ public class PaymentService {
         }
         payments.setProviderResponse(json.toString());
     }
-
-
 
     public Optional<PaymentResponseDTO> getPaymentByOrderId(Long orderId) {
         return paymentRepository.findByOrdersId(orderId)
