@@ -9,6 +9,7 @@ import jakarta.persistence.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -30,7 +31,7 @@ public class CartService {
     public CartResponseDTO incrementItem(CartItemRequestDTO requestDTO, String userUUID) {
         Users user = validateUser(userUUID);
 
-        Cart cart = cartRepository.findByUserAndIsActiveTrue(user)
+        Cart cart = cartRepository.findByUserAndIsActive(user, true)
                 .orElseGet(() -> {
                     Cart newCart = new Cart();
                     newCart.setUser(user);
@@ -89,7 +90,7 @@ public class CartService {
     public CartResponseDTO decrementItem(CartItemRequestDTO requestDTO, String userUUID) {
         Users user = validateUser(userUUID);
 
-        Cart cart = cartRepository.findByUserAndIsActiveTrue(user)
+        Cart cart = cartRepository.findByUserAndIsActive(user, true)
                 .orElseThrow(() -> new EntityNotFoundException("Active cart not found"));
 
         Long foodId = requestDTO.getFoodId();
@@ -120,7 +121,7 @@ public class CartService {
     public CartResponseDTO getCart(String userUUID) {
         Users user = validateUser(userUUID);
 
-        Cart cart = cartRepository.findByUserAndIsActiveTrue(user)
+        Cart cart = cartRepository.findByUserAndIsActive(user, true)
                 .orElse(null);
 
         if (cart == null || cart.getItems().isEmpty()) {
@@ -136,7 +137,7 @@ public class CartService {
     public void deleteCart(String userUUID) {
         Users user = validateUser(userUUID);
 
-        Cart cart = cartRepository.findByUserAndIsActiveTrue(user)
+        Cart cart = cartRepository.findByUserAndIsActive(user, true)
                 .orElseThrow(() -> new EntityNotFoundException("Active cart not found"));
 
         cart.setIsActive(false);
@@ -157,7 +158,7 @@ public class CartService {
     public void deleteCartItem(Long cartItemId, String userUUID) {
         Users user = validateUser(userUUID);
 
-        Cart cart = cartRepository.findByUserAndIsActiveTrue(user)
+        Cart cart = cartRepository.findByUserAndIsActive(user, true)
                 .orElseThrow(() -> new EntityNotFoundException("Active cart not found"));
 
         CartItem item = cart.getItems().stream()
@@ -170,4 +171,15 @@ public class CartService {
         cartRepository.save(cart);
     }
 
+    public Page<CartResponseDTO> getCartHistory(String userUUID, int page, int size, String sortDirection) {
+        Users user = userRepository.findByUserIdAndIsActiveTrue(userUUID)
+                .orElseThrow(() -> new EntityNotFoundException("User not found."));
+
+        Sort.Direction direction = sortDirection.equalsIgnoreCase("ASC") ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "createDate"));
+
+        Page<Cart> pagedHistory = cartRepository.findByUserIdAndIsActive(user.getId(), false, pageable);
+
+        return pagedHistory.map(cartMapper::toDto);
+    }
 }
