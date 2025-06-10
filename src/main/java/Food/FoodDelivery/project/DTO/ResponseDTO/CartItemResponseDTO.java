@@ -1,6 +1,7 @@
 package Food.FoodDelivery.project.DTO.ResponseDTO;
 
 import lombok.*;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -12,5 +13,6 @@ public class CartItemResponseDTO {
     private String foodId;
     private String foodName;
     private Integer quantity;
+    private LocalDateTime createDate;
     private Long foodVariantId;
 }

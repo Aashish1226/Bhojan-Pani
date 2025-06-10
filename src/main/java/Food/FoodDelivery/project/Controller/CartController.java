@@ -3,6 +3,7 @@ import Food.FoodDelivery.project.DTO.RequestDTO.CartItemRequestDTO;
 import Food.FoodDelivery.project.DTO.ResponseDTO.CartResponseDTO;
 import Food.FoodDelivery.project.service.CartService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -43,4 +44,16 @@ public class CartController {
         cartService.deleteCartItem(cartItemId, userUUID);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/history")
+    public ResponseEntity<Page<CartResponseDTO>> getCartHistory(
+            @RequestAttribute("userUUID") String userUUID,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "DESC") String sortDirection
+    ) {
+        Page<CartResponseDTO> history = cartService.getCartHistory(userUUID, page, size, sortDirection);
+        return ResponseEntity.ok(history);
+    }
+
 }

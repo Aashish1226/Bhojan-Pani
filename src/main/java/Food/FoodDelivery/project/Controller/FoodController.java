@@ -49,7 +49,7 @@ public class FoodController {
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size,
             @RequestParam(defaultValue = "totalOrderCount") String sortBy,
-            @RequestParam(defaultValue = "desc") @Pattern(regexp = "^(asc|desc)$", message = "Invalid sort direction , shoulbe asc or desc") String direction
+            @RequestParam(defaultValue = "desc") @Pattern(regexp = "^(asc|desc)$", message = "Invalid sort direction , should be asc or desc") String direction
     ) {
         if (foodType != null && !FoodType.isValid(foodType)) {
             throw new IllegalArgumentException("Invalid food type: " + foodType + ". Valid types are: " + Arrays.toString(FoodType.values()));
