@@ -32,7 +32,7 @@ Bhojan-Pani is a robust backend-focused cloud kitchen management system that pro
 - **Database Migrations**: Flyway for version-controlled database changes
 - **Pagination**: Efficient data retrieval with pagination support
 - **Exception Handling**: Global exception handler with custom exceptions
-- **Validation**: Custom validators and enum-based validations
+- **Validation**: Custom validators, Jakarta validation annotations, and enum-based validations
 - **DTO Pattern**: Clean request/response handling with MapStruct mapping
 - **Batch Processing**: Optimized database operations with batch processing
 
