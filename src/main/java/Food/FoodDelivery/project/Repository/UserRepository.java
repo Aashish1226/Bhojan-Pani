@@ -3,7 +3,6 @@ package Food.FoodDelivery.project.Repository;
 import Food.FoodDelivery.project.Entity.Users;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.data.jpa.repository.JpaRepository;
-
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<Users, Long> {
