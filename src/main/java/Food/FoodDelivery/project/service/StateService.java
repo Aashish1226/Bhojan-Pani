@@ -2,9 +2,9 @@ package Food.FoodDelivery.project.service;
 import Food.FoodDelivery.project.DTO.RequestDTO.StateRequestDTO;
 import Food.FoodDelivery.project.DTO.ResponseDTO.StateResponseDTO;
 import Food.FoodDelivery.project.Entity.*;
+import Food.FoodDelivery.project.Exceptions.CustomEntityNotFoundException;
 import Food.FoodDelivery.project.Mapper.StateMapper;
 import Food.FoodDelivery.project.Repository.*;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -35,7 +35,7 @@ public class StateService {
         }
         List<State> states = stateRequestDTOs.stream().map(dto -> {
             Country country = countryRepository.findById(dto.getCountryId())
-                    .orElseThrow(() -> new EntityNotFoundException("Country not found with ID: " + dto.getCountryId()));
+                    .orElseThrow(() -> new CustomEntityNotFoundException("Country not found with ID: " + dto.getCountryId()));
             if (stateRepository.existsByNameAndCountryId(dto.getName().trim(), dto.getCountryId())) {
                 throw new IllegalArgumentException("State already exists with name: " + dto.getName()
                         + " for Country ID: " + dto.getCountryId());
@@ -62,7 +62,7 @@ public class StateService {
         if (stateId == null || stateId <= 0) {
             throw new IllegalArgumentException("Invalid State ID provided");
         }
-        State existingState = stateRepository.findById(stateId).orElseThrow(() -> new EntityNotFoundException("State not found with ID: " + stateId));
+        State existingState = stateRepository.findById(stateId).orElseThrow(() -> new CustomEntityNotFoundException("State not found with ID: " + stateId));
         stateRepository.delete(existingState);
     }
 }

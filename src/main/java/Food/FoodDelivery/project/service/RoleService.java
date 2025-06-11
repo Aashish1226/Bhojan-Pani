@@ -3,9 +3,9 @@ package Food.FoodDelivery.project.service;
 import Food.FoodDelivery.project.DTO.RequestDTO.*;
 import Food.FoodDelivery.project.DTO.ResponseDTO.*;
 import Food.FoodDelivery.project.Entity.*;
+import Food.FoodDelivery.project.Exceptions.CustomEntityNotFoundException;
 import Food.FoodDelivery.project.Mapper.*;
 import Food.FoodDelivery.project.Repository.*;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -43,7 +43,7 @@ public class RoleService {
 
     public List<PermissionResponseDTO> getPermissionsByRoleId(Long roleId) {
         Role role = roleRepository.findByIdAndIsActive(roleId, true)
-                .orElseThrow(() -> new EntityNotFoundException("Active role not found with id: " + roleId));
+                .orElseThrow(() -> new CustomEntityNotFoundException("Active role not found with id: " + roleId));
 
         List<Permission> permissionslist = new ArrayList<>(role.getPermissions());
         return permissionMapper.toResponseList(permissionslist);
@@ -51,7 +51,7 @@ public class RoleService {
 
     public RoleResponseDTO updateRole(Long id, RoleRequestDTO requestDTO) {
         Role role = roleRepository.findByIdAndIsActive(id, true)
-                .orElseThrow(() -> new EntityNotFoundException("Role not found with id: " + id + " or role is not active"));
+                .orElseThrow(() -> new CustomEntityNotFoundException("Role not found with id: " + id + " or role is not active"));
         String trimmedName = requestDTO.getName().trim();
         roleRepository.findByNameAndIsActive(trimmedName, true)
                 .filter(existing -> !existing.getId().equals(id))
@@ -66,7 +66,7 @@ public class RoleService {
     }
 
     public RoleResponseDTO deleteRole(Long id) {
-        Role role = roleRepository.findByIdAndIsActive(id, true).orElseThrow(() -> new EntityNotFoundException("Role not found with id: " + id));
+        Role role = roleRepository.findByIdAndIsActive(id, true).orElseThrow(() -> new CustomEntityNotFoundException("Role not found with id: " + id));
         role.setIsActive(false);
 
         // Remove all permission associations from this role (disconnect join table entries)
@@ -79,7 +79,7 @@ public class RoleService {
     @Transactional
     public RoleResponseDTO restoreRole(Long id) {
         Role role = roleRepository.findByIdAndIsActive(id, false)
-                .orElseThrow(() -> new EntityNotFoundException("Role not found with id: " + id + " or role is already active"));
+                .orElseThrow(() -> new CustomEntityNotFoundException("Role not found with id: " + id + " or role is already active"));
 
         String trimmedName = role.getName().trim();
 
@@ -98,7 +98,7 @@ public class RoleService {
     @Transactional
     public RoleResponseDTO assignPermissionsToRole(Long roleId, AssignPermissionsToRoleRequestDTO requestDTO) {
         Role role = roleRepository.findByIdAndIsActive(roleId, true)
-                .orElseThrow(() -> new EntityNotFoundException("Active role not found with id: " + roleId));
+                .orElseThrow(() -> new CustomEntityNotFoundException("Active role not found with id: " + roleId));
 
         List<Long> requestedIds = requestDTO.getPermissionIds();
 

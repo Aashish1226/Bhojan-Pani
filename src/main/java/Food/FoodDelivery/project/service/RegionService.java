@@ -2,9 +2,9 @@ package Food.FoodDelivery.project.service;
 import Food.FoodDelivery.project.DTO.RequestDTO.RegionRequestDto;
 import Food.FoodDelivery.project.DTO.ResponseDTO.*;
 import Food.FoodDelivery.project.Entity.*;
+import Food.FoodDelivery.project.Exceptions.CustomEntityNotFoundException;
 import Food.FoodDelivery.project.Mapper.*;
 import Food.FoodDelivery.project.Repository.RegionRepository;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -46,12 +46,12 @@ public class RegionService {
 
     public RegionResponseDto getRegionById(Long id) {
         Region region = regionRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Region not found with id " + id));
+                .orElseThrow(() -> new CustomEntityNotFoundException("Region not found with id " + id));
         return regionMapper.toDto(region);
     }
 
     public List<SubRegionResponseDto> getSubRegionsByRegionId(Long regionId) {
-        Region region = regionRepository.findById(regionId).orElseThrow(() -> new EntityNotFoundException("Region is not found with id : " + regionId));
+        Region region = regionRepository.findById(regionId).orElseThrow(() -> new CustomEntityNotFoundException("Region is not found with id : " + regionId));
         List<SubRegion> subRegionList = region.getSubRegionList();
         return subRegionList.stream().map(subRegionMapper::toDto).toList();
     }

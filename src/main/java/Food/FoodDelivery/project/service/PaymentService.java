@@ -92,7 +92,7 @@ public class PaymentService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void cancelOrderForMaxAttempts(Long orderId) {
         Orders orders = orderRepository.findByIdAndIsActive(orderId , true)
-                .orElseThrow(() -> new EntityNotFoundException("Order not found: " + orderId));
+                .orElseThrow(() -> new CustomEntityNotFoundException("Order not found: " + orderId));
         orders.setIsActive(false);
         orders.setOrderStatus(OrderStatus.CANCELLED);
         Orders cancelledOrder = orderRepository.save(orders);
@@ -120,11 +120,11 @@ public class PaymentService {
 
     private Orders validateUserAndGetOrder(PaymentRequestDTO requestDTO, String userUUID) {
         if (!userRepository.existsByUserIdAndIsActiveTrue(userUUID)) {
-            throw new EntityNotFoundException("User not found: " + userUUID);
+            throw new CustomEntityNotFoundException("User not found: " + userUUID);
         }
 
         Orders orders = orderRepository.findByIdAndIsActive(requestDTO.getOrderId(), true)
-                .orElseThrow(() -> new EntityNotFoundException("Order not found: " + requestDTO.getOrderId()));
+                .orElseThrow(() -> new CustomEntityNotFoundException("Order not found: " + requestDTO.getOrderId()));
 
         if (!orders.getCart().getUser().getUserId().equals(userUUID)) {
             throw new CustomSecurityException("Order does not belong to user");
@@ -163,7 +163,7 @@ public class PaymentService {
             log.info("Verifying payment. Order ID: {}, Payment ID: {}", razorpayOrderId, razorpayPaymentId);
 
             Payments payments = paymentRepository.findByRazorpayOrderId(razorpayOrderId)
-                    .orElseThrow(() -> new EntityNotFoundException("Payment not found for Razorpay Order ID: " + razorpayOrderId));
+                    .orElseThrow(() -> new CustomEntityNotFoundException("Payment not found for Razorpay Order ID: " + razorpayOrderId));
 
             if (payments.getStatus() != PaymentStatus.CREATED) {
                 throw new PaymentException("Payment is not in a valid state for verification.");

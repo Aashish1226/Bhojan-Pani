@@ -3,10 +3,10 @@ package Food.FoodDelivery.project.service;
 import Food.FoodDelivery.project.DTO.RequestDTO.CategoryRequest;
 import Food.FoodDelivery.project.DTO.ResponseDTO.*;
 import Food.FoodDelivery.project.Entity.Category;
+import Food.FoodDelivery.project.Exceptions.CustomEntityNotFoundException;
 import Food.FoodDelivery.project.Mapper.CategoryMapper;
 import Food.FoodDelivery.project.Repository.*;
 import Food.FoodDelivery.project.validation.FileValidation;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -54,7 +54,7 @@ public class CategoryService {
 
     public CategoryResponse deleteOnlyCategory(Long id) {
         Category category = categoryRepository.findByIdAndIsActive(id, true)
-                .orElseThrow(() -> new EntityNotFoundException("Active category not found with id: " + id));
+                .orElseThrow(() -> new CustomEntityNotFoundException("Active category not found with id: " + id));
 
         boolean hasFoodItems = foodRepository.existsByCategoryId(id);
         if (hasFoodItems) {
@@ -69,7 +69,7 @@ public class CategoryService {
 
     public CategoryResponse updateCategory(Long id, CategoryRequest request, MultipartFile imageFile) {
         Category category = categoryRepository.findByIdAndIsActive(id, true)
-                .orElseThrow(() -> new EntityNotFoundException("Active category not found with id: " + id));
+                .orElseThrow(() -> new CustomEntityNotFoundException("Active category not found with id: " + id));
 
         if (imageFile != null && !imageFile.isEmpty()) {
             FileValidation.validateFile(imageFile);
@@ -102,7 +102,7 @@ public class CategoryService {
 
         String categoryNameToRestore = categoryRepository.findNameById(id);
         if (categoryNameToRestore == null) {
-            throw new EntityNotFoundException("Category not found with id: " + id);
+            throw new CustomEntityNotFoundException("Category not found with id: " + id);
         }
 
         Optional<Category> duplicateCategory = categoryRepository.findByNameAndIsActiveTrue(categoryNameToRestore)
@@ -116,7 +116,7 @@ public class CategoryService {
 
         int updatedRows = categoryRepository.restoreCategory(id, now);
         if (updatedRows == 0) {
-            throw new EntityNotFoundException("Deleted category not found with id: " + id);
+            throw new CustomEntityNotFoundException("Deleted category not found with id: " + id);
         }
 
         foodRepository.restoreFoodsByCategory(id, now);
@@ -137,7 +137,7 @@ public class CategoryService {
 
         int updatedCategoryRows = categoryRepository.deactivateCategory(id, now);
         if (updatedCategoryRows == 0) {
-            throw new EntityNotFoundException("Active category not found with id: " + id);
+            throw new CustomEntityNotFoundException("Active category not found with id: " + id);
         }
 
         foodRepository.markFoodsUnavailableByCategory(id, now);
