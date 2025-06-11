@@ -13,7 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.*;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -142,8 +141,8 @@ public class UserService {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
-    public UserResponseDTO updateUser(Long userId, UserRequestDTO dto) {
-        Users user = userRepository.findByIdAndIsActive(userId, true)
+    public UserResponseDTO updateUser(String userId, UserRequestDTO dto) {
+        Users user = userRepository.findByUserIdAndIsActiveTrue(userId)
                 .orElseThrow(() -> new CustomEntityNotFoundException("User not found with id: " + userId));
 
         if (!dto.getRoleId().equals(user.getRole().getId())) {
