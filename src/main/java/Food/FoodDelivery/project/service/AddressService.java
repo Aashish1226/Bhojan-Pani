@@ -4,6 +4,7 @@ import Food.FoodDelivery.project.DTO.RequestDTO.AddressesRequestDto;
 import Food.FoodDelivery.project.DTO.ResponseDTO.AddressesResponseDto;
 import Food.FoodDelivery.project.Entity.*;
 import Food.FoodDelivery.project.Enum.AddressType;
+import Food.FoodDelivery.project.Exceptions.CustomEntityNotFoundException;
 import Food.FoodDelivery.project.Mapper.AddressesMapper;
 import Food.FoodDelivery.project.Repository.*;
 import jakarta.persistence.*;
@@ -46,7 +47,7 @@ public class AddressService {
 
     public List<AddressesResponseDto> getAllAddressesByUserUuid(String uuid) {
         Users user = userRepository.findByUserIdAndIsActiveTrue(uuid)
-                .orElseThrow(() -> new EntityNotFoundException("Active user not found with UUID: " + uuid));
+                .orElseThrow(() -> new CustomEntityNotFoundException("Active user not found with UUID: " + uuid));
 
         List<Addresses> addresses = addressRepository.findByUserIdAndIsActive(user.getId(), true);
 
@@ -59,7 +60,7 @@ public class AddressService {
         Addresses address = addressRepository.findByIdAndIsActive(addressId, true);
 
         if (address == null) {
-            throw new EntityNotFoundException("Active address not found with ID: " + addressId);
+            throw new CustomEntityNotFoundException("Active address not found with ID: " + addressId);
         }
 
         if (!address.getUser().getId().equals(user.getId())) {
@@ -75,7 +76,7 @@ public class AddressService {
         Users user = validateUser(uuid);
         Addresses address = addressRepository.findByIdAndIsActive(addressId, true);
         if (address == null) {
-            throw new EntityNotFoundException("Active address not found with ID: " + addressId);
+            throw new CustomEntityNotFoundException("Active address not found with ID: " + addressId);
         }
 
         if (!address.getUser().getId().equals(user.getId())) {
@@ -98,7 +99,7 @@ public class AddressService {
 
     private Users validateUser(String uuid) {
         return userRepository.findByUserIdAndIsActiveTrue(uuid)
-                .orElseThrow(() -> new EntityNotFoundException("Active user not found with UUID: " + uuid));
+                .orElseThrow(() -> new CustomEntityNotFoundException("Active user not found with UUID: " + uuid));
     }
 
 }

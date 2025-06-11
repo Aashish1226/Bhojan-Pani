@@ -3,6 +3,7 @@ package Food.FoodDelivery.project.service;
 import Food.FoodDelivery.project.DTO.RequestDTO.CartItemRequestDTO;
 import Food.FoodDelivery.project.DTO.ResponseDTO.CartResponseDTO;
 import Food.FoodDelivery.project.Entity.*;
+import Food.FoodDelivery.project.Exceptions.CustomEntityNotFoundException;
 import Food.FoodDelivery.project.Mapper.CartMapper;
 import Food.FoodDelivery.project.Repository.*;
 import jakarta.persistence.*;
@@ -56,7 +57,7 @@ public class CartService {
             cartItemRepository.save(existingItem);
         } else {
             Food food = foodRepository.findByIdAndIsAvailableAndIsActive(foodId, true, true)
-                    .orElseThrow(() -> new EntityNotFoundException("Food not found or unavailable"));
+                    .orElseThrow(() -> new CustomEntityNotFoundException("Food not found or unavailable"));
 
             CartItem newItem = new CartItem();
             newItem.setFood(food);
@@ -66,7 +67,7 @@ public class CartService {
 
             if (variantId != null) {
                 FoodVariant variant = foodVariantRepository.findByIdAndIsActiveAndIsAvailable(variantId, true, true)
-                        .orElseThrow(() -> new EntityNotFoundException("Food variant not found or unavailable"));
+                        .orElseThrow(() -> new CustomEntityNotFoundException("Food variant not found or unavailable"));
 
                 if (!variant.getFood().getId().equals(foodId)) {
                     throw new IllegalArgumentException("Variant does not belong to the specified food");
@@ -91,7 +92,7 @@ public class CartService {
         Users user = validateUser(userUUID);
 
         Cart cart = cartRepository.findByUserAndIsActive(user, true)
-                .orElseThrow(() -> new EntityNotFoundException("Active cart not found"));
+                .orElseThrow(() -> new CustomEntityNotFoundException("Active cart not found"));
 
         Long foodId = requestDTO.getFoodId();
         Long variantId = requestDTO.getFoodVariantId();
@@ -104,7 +105,7 @@ public class CartService {
                                         variantId)
                 )
                 .findFirst()
-                .orElseThrow(() -> new EntityNotFoundException("Cart item not found"));
+                .orElseThrow(() -> new CustomEntityNotFoundException("Cart item not found"));
 
         if (item.getQuantity() > 1) {
             item.setQuantity(item.getQuantity() - 1);
@@ -138,7 +139,7 @@ public class CartService {
         Users user = validateUser(userUUID);
 
         Cart cart = cartRepository.findByUserAndIsActive(user, true)
-                .orElseThrow(() -> new EntityNotFoundException("Active cart not found"));
+                .orElseThrow(() -> new CustomEntityNotFoundException("Active cart not found"));
 
         cart.setIsActive(false);
 
@@ -151,7 +152,7 @@ public class CartService {
 
     private Users validateUser(String userUUID) {
         return userRepository.findByUserIdAndIsActiveTrue(userUUID)
-                .orElseThrow(() -> new EntityNotFoundException("User not found for UUID: " + userUUID));
+                .orElseThrow(() -> new CustomEntityNotFoundException("User not found for UUID: " + userUUID));
     }
 
     @Transactional
@@ -159,12 +160,12 @@ public class CartService {
         Users user = validateUser(userUUID);
 
         Cart cart = cartRepository.findByUserAndIsActive(user, true)
-                .orElseThrow(() -> new EntityNotFoundException("Active cart not found"));
+                .orElseThrow(() -> new CustomEntityNotFoundException("Active cart not found"));
 
         CartItem item = cart.getItems().stream()
                 .filter(i -> i.getId().equals(cartItemId))
                 .findFirst()
-                .orElseThrow(() -> new EntityNotFoundException("Cart item not found for ID: " + cartItemId));
+                .orElseThrow(() -> new CustomEntityNotFoundException("Cart item not found for ID: " + cartItemId));
 
         cart.getItems().remove(item);
 
@@ -173,7 +174,7 @@ public class CartService {
 
     public Page<CartResponseDTO> getCartHistory(String userUUID, int page, int size, String sortDirection) {
         Users user = userRepository.findByUserIdAndIsActiveTrue(userUUID)
-                .orElseThrow(() -> new EntityNotFoundException("User not found."));
+                .orElseThrow(() -> new CustomEntityNotFoundException("User not found."));
 
         Sort.Direction direction = sortDirection.equalsIgnoreCase("ASC") ? Sort.Direction.ASC : Sort.Direction.DESC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "createDate"));

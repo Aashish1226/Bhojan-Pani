@@ -3,6 +3,7 @@ package Food.FoodDelivery.project.service;
 import Food.FoodDelivery.project.DTO.ResponseDTO.OrderResponseDTO;
 import Food.FoodDelivery.project.Entity.*;
 import Food.FoodDelivery.project.Enum.OrderStatus;
+import Food.FoodDelivery.project.Exceptions.CustomEntityNotFoundException;
 import Food.FoodDelivery.project.Mapper.OrderMapper;
 import Food.FoodDelivery.project.Repository.*;
 import jakarta.persistence.EntityNotFoundException;
@@ -31,10 +32,10 @@ public class OrderService {
     @Transactional
     public OrderResponseDTO placeOrder(String userUuid, Long cartId, Long addressId) {
         Users user = usersRepository.findByUserIdAndIsActiveTrue(userUuid)
-                .orElseThrow(() -> new RuntimeException("User not found with UUID: " + userUuid));
+                .orElseThrow(() -> new CustomEntityNotFoundException("User not found with UUID: " + userUuid));
 
         Cart cart = cartRepository.findByIdAndIsActiveTrue(cartId)
-                .orElseThrow(() -> new RuntimeException("Cart not found with ID: " + cartId));
+                .orElseThrow(() -> new CustomEntityNotFoundException("Cart not found with ID: " + cartId));
 
         boolean hasSuccessfulOrder = orderRepository.existsByCartIdAndOrderStatus(cartId, OrderStatus.CONFIRMED);
 
@@ -120,7 +121,7 @@ public class OrderService {
 
     public OrderResponseDTO updateOrderStatus(Long orderId, String newStatus) {
         Orders orders = orderRepository.findByIdAndIsActive(orderId, true)
-                .orElseThrow(() -> new EntityNotFoundException("Order not found with id: " + orderId));
+                .orElseThrow(() -> new CustomEntityNotFoundException("Order not found with id: " + orderId));
 
         OrderStatus status;
         try {

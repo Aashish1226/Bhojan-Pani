@@ -4,9 +4,9 @@ import Food.FoodDelivery.project.DTO.RequestDTO.FoodRequestDTO;
 import Food.FoodDelivery.project.DTO.ResponseDTO.FoodResponseDTO;
 import Food.FoodDelivery.project.Entity.*;
 import Food.FoodDelivery.project.Enum.FoodType;
+import Food.FoodDelivery.project.Exceptions.CustomEntityNotFoundException;
 import Food.FoodDelivery.project.Mapper.*;
 import Food.FoodDelivery.project.Repository.*;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
@@ -38,7 +38,7 @@ public class FoodService {
         String imageUrl = awsS3Service.uploadFileToFolder(imageFile, "food");
 
         Category category = categoryRepository.findByIdAndIsActive(dto.getCategoryId(), true)
-                .orElseThrow(() -> new EntityNotFoundException("Category not found with ID: " + dto.getCategoryId()));
+                .orElseThrow(() -> new CustomEntityNotFoundException("Category not found with ID: " + dto.getCategoryId()));
 
         if (foodRepository.existsByNameAndCategoryIdAndIsActiveTrue(dto.getName(), dto.getCategoryId())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
@@ -97,10 +97,10 @@ public class FoodService {
     @Transactional
     public FoodResponseDTO updateFood(Long id, FoodRequestDTO foodRequest, MultipartFile imageFile) {
         Food food = foodRepository.findByIdAndIsActive(id, true)
-                .orElseThrow(() -> new EntityNotFoundException("Active food not found with id: " + id));
+                .orElseThrow(() -> new CustomEntityNotFoundException("Active food not found with id: " + id));
 
         Category category = categoryRepository.findByIdAndIsActive(foodRequest.getCategoryId(), true)
-                .orElseThrow(() -> new EntityNotFoundException("Active category not found with id: " + foodRequest.getCategoryId()));
+                .orElseThrow(() -> new CustomEntityNotFoundException("Active category not found with id: " + foodRequest.getCategoryId()));
 
         foodMapper.updateEntityFromDto(foodRequest, food);
         food.setCategory(category);

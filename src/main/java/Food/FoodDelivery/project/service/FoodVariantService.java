@@ -3,9 +3,9 @@ package Food.FoodDelivery.project.service;
 import Food.FoodDelivery.project.DTO.RequestDTO.FoodVariantRequestDTO;
 import Food.FoodDelivery.project.DTO.ResponseDTO.FoodVariantResponseDTO;
 import Food.FoodDelivery.project.Entity.FoodVariant;
+import Food.FoodDelivery.project.Exceptions.CustomEntityNotFoundException;
 import Food.FoodDelivery.project.Mapper.FoodVariantMapper;
 import Food.FoodDelivery.project.Repository.*;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,7 +24,7 @@ public class FoodVariantService {
     @Transactional
     public FoodVariantResponseDTO addVariant(Long foodId, FoodVariantRequestDTO variantRequest) {
         Food food = foodRepository.findByIdAndIsActive(foodId, true)
-                .orElseThrow(() -> new EntityNotFoundException("Active food not found with id: " + foodId));
+                .orElseThrow(() -> new CustomEntityNotFoundException("Active food not found with id: " + foodId));
 
         boolean variantExists = foodVariantRepository.existsByFoodAndLabelIgnoreCaseAndIsActiveTrue(food, variantRequest.getLabel());
         if (variantExists) {
@@ -40,7 +40,7 @@ public class FoodVariantService {
 
     public List<FoodVariantResponseDTO> getActiveVariantsByFood(Long foodId) {
         Food food = foodRepository.findByIdAndIsActive(foodId, true)
-                .orElseThrow(() -> new EntityNotFoundException("Active food not found with id: " + foodId));
+                .orElseThrow(() -> new CustomEntityNotFoundException("Active food not found with id: " + foodId));
 
         List<FoodVariant> variants = foodVariantRepository.findByFoodAndIsActiveTrue(food);
         return foodVariantMapper.toDtoList(variants);
@@ -49,7 +49,7 @@ public class FoodVariantService {
     @Transactional
     public FoodVariantResponseDTO updateVariant(Long foodId, Long variantId, FoodVariantRequestDTO variantRequest) {
         FoodVariant variant = foodVariantRepository.findByIdAndFoodIdAndIsActive(variantId, foodId)
-                .orElseThrow(() -> new EntityNotFoundException("Variant not found for given food or is inactive"));
+                .orElseThrow(() -> new CustomEntityNotFoundException("Variant not found for given food or is inactive"));
 
         foodVariantMapper.updateEntityFromDto(variantRequest, variant);
         FoodVariant saved = foodVariantRepository.save(variant);
@@ -60,7 +60,7 @@ public class FoodVariantService {
     @Transactional
     public void deleteVariant(Long foodId, Long variantId) {
         FoodVariant variant = foodVariantRepository.findByIdAndFoodIdAndIsActive(variantId, foodId)
-                .orElseThrow(() -> new EntityNotFoundException("Active variant not found for this food or food is inactive"));
+                .orElseThrow(() -> new CustomEntityNotFoundException("Active variant not found for this food or food is inactive"));
 
         variant.setIsActive(false);
         foodVariantRepository.save(variant);

@@ -3,6 +3,7 @@ package Food.FoodDelivery.project.service;
 import Food.FoodDelivery.project.DTO.RequestDTO.OrderConfigRequestDTO;
 import Food.FoodDelivery.project.DTO.ResponseDTO.OrderConfigResponseDTO;
 import Food.FoodDelivery.project.Entity.OrderConfig;
+import Food.FoodDelivery.project.Exceptions.CustomEntityNotFoundException;
 import Food.FoodDelivery.project.Mapper.OrderConfigMapper;
 import Food.FoodDelivery.project.Repository.OrderConfigRepository;
 import jakarta.transaction.Transactional;
@@ -31,7 +32,7 @@ public class OrderConfigService {
     @Transactional
     public OrderConfigResponseDTO updateOrderConfig(Long id, OrderConfigRequestDTO requestDTO) {
         OrderConfig config = orderConfigRepository.findByIdAndIsActive(id , true)
-                .orElseThrow(() -> new RuntimeException("OrderConfig not found with id: " + id + " or is not active"));
+                .orElseThrow(() -> new CustomEntityNotFoundException("OrderConfig not found with id: " + id + " or is not active"));
 
         orderConfigMapper.updateOrderConfigFromDto(requestDTO , config);
 
@@ -42,7 +43,7 @@ public class OrderConfigService {
     @Transactional
     public void softDeleteOrderConfig(Long id) {
         OrderConfig config = orderConfigRepository.findByIdAndIsActive(id , true)
-                .orElseThrow(() -> new RuntimeException("OrderConfig not found with id: " + id + " or is not active"));
+                .orElseThrow(() -> new CustomEntityNotFoundException("OrderConfig not found with id: " + id + " or is not active"));
 
         config.setIsActive(false);
         orderConfigRepository.save(config);

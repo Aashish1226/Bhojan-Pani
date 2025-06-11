@@ -1,16 +1,13 @@
 package Food.FoodDelivery.project.service;
-import Food.FoodDelivery.project.DTO.RequestDTO.CountryRequestDTO;
 import Food.FoodDelivery.project.DTO.ResponseDTO.*;
 import Food.FoodDelivery.project.Entity.*;
+import Food.FoodDelivery.project.Exceptions.CustomEntityNotFoundException;
 import Food.FoodDelivery.project.Mapper.*;
 import Food.FoodDelivery.project.Repository.*;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.*;
-
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class CountryService {
@@ -24,37 +21,6 @@ public class CountryService {
         this.countryMapper = countryMapper;
         this.regionRepository = regionRepository;
         this.timezoneMapper = timezoneMapper;
-    }
-    public List<CountryResponseDTO> createCountries(List<CountryRequestDTO> countryRequestDTOList) {
-        Set<String> isoCodes = new HashSet<>();
-        Set<String> names = new HashSet<>();
-        Set<String> phonecodes = new HashSet<>();
-        for (CountryRequestDTO dto : countryRequestDTOList) {
-            if (!isoCodes.add(dto.getIso2())) {
-                throw new IllegalArgumentException("Duplicate ISO 2 Code in request: " + dto.getIso2());
-            }
-            if (!names.add(dto.getName())) {
-                throw new IllegalArgumentException("Duplicate country name in request: " + dto.getName());
-            }
-            if (!phonecodes.add(dto.getPhoneCode())) {
-                throw new IllegalArgumentException("Duplicate phone code in request: " + dto.getPhoneCode());
-            }
-        }
-        for (CountryRequestDTO dto : countryRequestDTOList) {
-            String phoneCodeValue = dto.getPhoneCode();
-            if (countryRepository.existsByIso2((dto.getIso2()))){
-                throw new IllegalArgumentException("Country already exists with ISO 2 Code: " + dto.getIso2());
-            }
-            if (countryRepository.existsByName(dto.getName())) {
-                throw new IllegalArgumentException("Country already exists with name: " + dto.getName());
-            }
-            if (countryRepository.existsByPhoneCode(phoneCodeValue)){
-                throw new IllegalArgumentException("Country already exists with phone code: " + dto.getPhoneCode());
-            }
-        }
-        List<Country> countries = countryRequestDTOList.stream().map(countryMapper::toEntity).collect(Collectors.toList());
-        List<Country> savedCountries = countryRepository.saveAll(countries);
-        return savedCountries.stream().map(countryMapper::toResponseDto).collect(Collectors.toList());
     }
 
     public List<CountryResponseDTO> getAllCountries() {
@@ -78,7 +44,7 @@ public class CountryService {
 
     }
     public CountryResponseDTO getCountryById(Long id) {
-        Country country = countryRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Country not found with ID: " + id));
+        Country country = countryRepository.findById(id).orElseThrow(() -> new CustomEntityNotFoundException("Country not found with ID: " + id));
         return countryMapper.toResponseDto(country);
     }
 
@@ -120,7 +86,7 @@ public class CountryService {
 
     public List<CountryResponseDTO> getAllCountriesByRegionId(Long regionId){
 
-        regionRepository.findById(regionId).orElseThrow(() -> new EntityNotFoundException("Region do not exists with id : " + regionId));
+        regionRepository.findById(regionId).orElseThrow(() -> new CustomEntityNotFoundException("Region do not exists with id : " + regionId));
 
         List<Country> allCountries = countryRepository.findByRegionId(regionId);
 

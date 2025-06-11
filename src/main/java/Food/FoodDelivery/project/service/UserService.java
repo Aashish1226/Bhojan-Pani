@@ -3,10 +3,10 @@ package Food.FoodDelivery.project.service;
 import Food.FoodDelivery.project.DTO.RequestDTO.*;
 import Food.FoodDelivery.project.DTO.ResponseDTO.UserResponseDTO;
 import Food.FoodDelivery.project.Entity.*;
+import Food.FoodDelivery.project.Exceptions.CustomEntityNotFoundException;
 import Food.FoodDelivery.project.Mapper.UsersMapper;
 import Food.FoodDelivery.project.Repository.*;
 import io.micrometer.common.util.StringUtils;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +36,7 @@ public class UserService {
     @Transactional
     public UserResponseDTO createUser(UserRequestDTO userRequestDTO) {
         Role role = roleRepository.findByIdAndIsActive(userRequestDTO.getRoleId(), true)
-                .orElseThrow(() -> new EntityNotFoundException("Role not found with id: " + userRequestDTO.getRoleId() + " or role is not active"));
+                .orElseThrow(() -> new CustomEntityNotFoundException("Role not found with id: " + userRequestDTO.getRoleId() + " or role is not active"));
 
         Users user = usersMapper.toEntity(userRequestDTO);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -108,7 +108,7 @@ public class UserService {
         Map<String, String> response = new HashMap<>();
 
         Users user = userRepository.findByEmailAndIsActiveTrue(loginRequestDTO.getEmail())
-                .orElseThrow(() -> new UsernameNotFoundException("Invalid email or password."));
+                .orElseThrow(() -> new CustomEntityNotFoundException("Invalid email or password."));
 
         try {
             Authentication authentication = authManager.authenticate(
@@ -144,7 +144,7 @@ public class UserService {
 
     public UserResponseDTO updateUser(Long userId, UserRequestDTO dto) {
         Users user = userRepository.findByIdAndIsActive(userId, true)
-                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + userId));
+                .orElseThrow(() -> new CustomEntityNotFoundException("User not found with id: " + userId));
 
         if (!dto.getRoleId().equals(user.getRole().getId())) {
             throw new IllegalArgumentException("You are not authorized to change the user's role.");
@@ -168,7 +168,7 @@ public class UserService {
 
     public UserResponseDTO softDeleteUser(Long userId) {
         Users user = userRepository.findByIdAndIsActive(userId, true)
-                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + userId));
+                .orElseThrow(() -> new CustomEntityNotFoundException("User not found with id: " + userId));
 
         user.setIsActive(false);
         Users savedUser = userRepository.save(user);
@@ -177,7 +177,7 @@ public class UserService {
 
     public UserResponseDTO restoreUser(Long userId) {
         Users user = userRepository.findByIdAndIsActive(userId, false)
-                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + userId + " or is already active"));
+                .orElseThrow(() -> new CustomEntityNotFoundException("User not found with id: " + userId + " or is already active"));
 
         boolean emailConflict = emailExists(user.getEmail());
         if (emailConflict) {

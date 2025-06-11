@@ -88,8 +88,8 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(ex.getStatus()).body(CommonResponse.error(combinedMessage, errorCode));
     }
 
-    @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<CommonResponse> handleEntityNotFoundException(EntityNotFoundException ex) {
+    @ExceptionHandler(CustomEntityNotFoundException.class)
+    public ResponseEntity<CommonResponse> handleEntityNotFoundException(CustomEntityNotFoundException ex) {
         String message = ex.getMessage();
         String errorCode = ex.getErrorCode() != null ? ex.getErrorCode() : "ENTITY_NOT_FOUND";
         return ResponseEntity.status(ex.getStatus() != null ? ex.getStatus() : HttpStatus.NOT_FOUND).body(CommonResponse.error(message, errorCode));

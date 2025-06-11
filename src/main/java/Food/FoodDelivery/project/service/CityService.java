@@ -1,6 +1,7 @@
 package Food.FoodDelivery.project.service;
 import Food.FoodDelivery.project.DTO.ResponseDTO.CityResponseDTO;
 import Food.FoodDelivery.project.Entity.*;
+import Food.FoodDelivery.project.Exceptions.CustomEntityNotFoundException;
 import Food.FoodDelivery.project.Mapper.CityMapper;
 import Food.FoodDelivery.project.Repository.StateRepository;
 import jakarta.transaction.Transactional;
@@ -19,7 +20,7 @@ public class CityService {
     @Transactional
     public List<CityResponseDTO> getCitiesByStateId(Long stateId) {
         State state = stateRepository.findById(stateId)
-                .orElseThrow(() -> new IllegalArgumentException("State ID " + stateId + " not found"));
+                .orElseThrow(() -> new CustomEntityNotFoundException("State ID " + stateId + " not found"));
         List<City> cities = state.getCities();
         return cities.stream().map(cityMapper::toResponseDTO).toList();
     }
