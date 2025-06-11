@@ -142,8 +142,8 @@ public class UserService {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
-    public UserResponseDTO updateUser(Long userId, UserRequestDTO dto) {
-        Users user = userRepository.findByIdAndIsActive(userId, true)
+    public UserResponseDTO updateUser(String userId, UserRequestDTO dto) {
+        Users user = userRepository.findByUserIdAndIsActiveTrue(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + userId));
 
         if (!dto.getRoleId().equals(user.getRole().getId())) {
