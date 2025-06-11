@@ -208,8 +208,406 @@ Automated email system for:
 
 ## 🔄 API Documentation
 
-API documentation will be available soon with detailed endpoint information.
+### User Management API
 
+#### Base URL
+```
+http://localhost:8083/users
+```
+
+#### Authentication
+- JWT Token-based authentication
+- Include JWT token in Authorization header: `Authorization: Bearer <token>`
+- Token obtained from login endpoint
+
+## Base URL
+```
+http://localhost:8083/users
+```
+
+## Authentication
+- JWT Token-based authentication
+- Include JWT token in Authorization header: `Authorization: Bearer <token>`
+- Token obtained from login endpoint
+
+#### Endpoints
+
+##### 1. User Registration
+**POST** `/users/register`
+
+Creates a new user account in the system.
+
+#### Request Body
+```json
+{
+  "firstName": "John",
+  "middleName": "Michael",
+  "lastName": "Doe",
+  "dateOfBirth": "1990-05-15",
+  "email": "john.doe@example.com",
+  "countryCode": "+91",
+  "phoneNumber": "1234567890",
+  "password": "SecurePass123@",
+  "confirmPassword": "SecurePass123@",
+  "roleId": 2
+}
+```
+
+#### Field Validations
+| Field | Type | Required | Validation Rules |
+|-------|------|----------|------------------|
+| `firstName` | String | Yes | Only letters and spaces, cannot be blank |
+| `middleName` | String | No | Only letters and spaces (optional) |
+| `lastName` | String | No | Only letters and spaces (optional) |
+| `dateOfBirth` | String | No | Format: YYYY-MM-DD (ISO format) |
+| `email` | String | Yes | Valid email format |
+| `countryCode` | String | Yes | Format: +1 to +9999 (1-4 digits after +) |
+| `phoneNumber` | String | Yes | 10-digit number starting with 1-9 |
+| `password` | String | Yes | Min 8 chars, 1 uppercase, 1 lowercase, 1 digit, 1 special char |
+| `confirmPassword` | String | Yes | Must match password |
+| `roleId` | Long | Yes | Valid role ID (2 for USER, 1 for ADMIN) |
+
+#### Response
+**Success (200 OK)**
+```json
+{
+  "firstName": "John",
+  "middleName": "Michael",
+  "lastName": "Doe",
+  "dateOfBirth": "1990-05-15",
+  "countryCode": "+1",
+  "phoneNumber": "9876543210",
+  "email": "john.doe@example.com",
+  "roleName": "USER"
+}
+```
+
+**Validation Error (400 Bad Request)**
+```json
+{
+  "firstName": "First name is required.",
+  "email": "Invalid email format.",
+  "password": "Password must be at least 8 characters long and contain one uppercase letter, one lowercase letter, one digit, and one special character."
+}
+```
+
+---
+
+##### 2. User Login
+**POST** `/users/login`
+
+Authenticates user credentials and returns JWT token.
+
+#### Request Body
+```json
+{
+  "email": "john.doe@example.com",
+  "password": "SecurePass123@"
+}
+```
+
+#### Field Validations
+| Field | Type | Required | Validation Rules |
+|-------|------|----------|------------------|
+| `email` | String | Yes | Valid email format |
+| `password` | String | Yes | Not blank |
+
+#### Response
+**Success (200 OK)**
+```json
+{
+  "jwtToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "status": "success",
+  "message": "Login successful."
+}
+```
+
+**Authentication Failed (401 Unauthorized)**
+```json
+{
+  "status": "error",
+  "message": "Invalid credentials"
+}
+```
+
+---
+
+##### 3. Update User
+**PUT** `/users/{userId}`
+
+Updates user information. Requires authentication.
+
+#### Authorization
+- **Roles Required:** `ADMIN` or `USER`
+- **Access Control:** Users can update their own profile, Admins can update any user
+- The user's UUID is automatically extracted from the request attribute, ensuring secure access
+#### Path Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `userId` | Long | Yes | ID of the user to update |
+
+#### Request Headers
+```
+Authorization: Bearer <jwt_token>
+Content-Type: application/json
+```
+
+#### Request Body
+```json
+{
+  "firstName": "John",
+  "middleName": "Michael",
+  "lastName": "Smith",
+  "dateOfBirth": "1990-05-15",
+  "email": "john.smith@example.com",
+  "countryCode": "+91",
+  "phoneNumber": "1234567890",
+  "password": "NewSecurePass123@",
+  "confirmPassword": "NewSecurePass123@",
+  "roleId": 2
+}
+```
+
+#### Response
+**Success (200 OK)**
+```json
+{
+  "firstName": "John",
+  "middleName": "Michael",
+  "lastName": "Smith",
+  "dateOfBirth": "1990-05-15",
+  "countryCode": "+191",
+  "phoneNumber": "9876543210",
+  "email": "john.smith@example.com",
+  "roleName": "USER"
+}
+```
+
+**Unauthorized (403 Forbidden)**
+```json
+{
+  "status": "error",
+  "message": "Access denied: You do not have permission to access this resource",
+  "errorCode": "ACCESS_DENIED"
+}
+```
+
+**User Not Found (404 Not Found)**
+```json
+{
+  "error": "User not found"
+}
+```
+
+---
+
+##### 4. Soft Delete User
+**DELETE** `/users/{id}`
+
+Performs soft delete on a user account (marks as deleted without removing from database).
+
+#### Authorization
+- **Roles Required:** `ADMIN` only
+- **Access Control:** Only administrators can delete users
+
+#### Path Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `id` | Long | Yes | ID of the user to delete |
+
+#### Request Headers
+```
+Authorization: Bearer <jwt_token>
+```
+
+#### Response
+**Success (200 OK)**
+```json
+{
+  "firstName": "John",
+  "middleName": "Michael",
+  "lastName": "Doe",
+  "dateOfBirth": "1990-05-15",
+  "countryCode": "+1",
+  "phoneNumber": "9876543210",
+  "email": "john.doe@example.com",
+  "roleName": "USER"
+}
+```
+
+**Unauthorized (403 Forbidden)**
+```json
+{
+  "error": "Access denied. Admin role required."
+}
+```
+
+**User Not Found (404 Not Found)**
+```json
+{
+  "error": "User not found"
+}
+```
+
+---
+
+##### 5. Restore User
+**PUT** `/users/restore/{id}`
+
+Restores a soft-deleted user account.
+
+#### Authorization
+- **Roles Required:** `ADMIN` only
+- **Access Control:** Only administrators can restore users
+
+#### Path Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `id` | Long | Yes | ID of the user to restore |
+
+#### Request Headers
+```
+Authorization: Bearer <jwt_token>
+```
+
+#### Response
+**Success (200 OK)**
+```json
+{
+  "firstName": "John",
+  "middleName": "Michael",
+  "lastName": "Doe",
+  "dateOfBirth": "1990-05-15",
+  "countryCode": "+1",
+  "phoneNumber": "9876543210",
+  "email": "john.doe@example.com",
+  "roleName": "USER"
+}
+```
+
+**Unauthorized (403 Forbidden)**
+```json
+{
+  "status": "error",
+  "message": "Access denied: You do not have permission to access this resource",
+  "errorCode": "ACCESS_DENIED"
+}
+```
+
+**User Not Found (404 Not Found)**
+```json
+{
+  "error": "User not found or not deleted"
+}
+```
+
+---
+
+#### Common Error Responses
+
+##### 400 Bad Request
+Returned when request validation fails or required fields are missing.
+
+##### 401 Unauthorized
+Returned when JWT token is missing, invalid, or expired.
+
+##### 403 Forbidden
+Returned when user doesn't have required permissions for the requested operation.
+
+##### 404 Not Found
+Returned when requested user doesn't exist.
+
+##### 500 Internal Server Error
+Returned when an unexpected server error occurs.
+
+---
+
+#### Authentication Flow
+
+1. **Register** a new user account using `/users/register`
+2. **Login** with credentials using `/users/login` to receive JWT token
+3. **Include** JWT token in `Authorization` header for protected endpoints
+4. **Use** the token for subsequent API calls until it expires
+
+---
+
+#### Role-Based Access Control
+
+##### Default Roles
+- **ADMIN (roleId: 1)**: Full system access
+   - Can create, update, delete, and restore any user
+   - Can manage system configurations
+   - Can access all admin endpoints
+
+- **USER (roleId: 2)**: Customer access
+   - Can update own profile
+   - Can place orders and manage cart
+   - Limited to customer-specific operations
+
+##### Permission Matrix
+| Endpoint | ADMIN | USER |
+|----------|-------|------|
+| POST /users/register | ✅ | ✅ |
+| POST /users/login | ✅ | ✅ |
+| PUT /users/{userId} | ✅ | ✅ (own profile) |
+| DELETE /users/{id} | ✅ | ❌ |
+| PUT /users/restore/{id} | ✅ | ❌ |
+
+---
+
+#### Security Notes
+
+- All passwords are securely hashed before storage
+- JWT tokens have configurable expiration times , with 10 hours expiry
+- Rate limiting may be applied to prevent abuse
+- Sensitive information is never returned in API responses
+
+---
+
+#### Example Usage
+
+##### Register a new customer
+```bash
+curl -X POST http://localhost:8083/users/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "firstName": "Jane",
+    "lastName": "Smith",
+    "email": "jane.smith@example.com",
+    "countryCode": "+91",
+    "phoneNumber": "9876543210",
+    "password": "SecurePass123@",
+    "confirmPassword": "SecurePass123@",
+    "roleId": 2
+  }'
+```
+
+##### Login and get JWT token
+```bash
+curl -X POST http://localhost:8083/users/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "jane.smith@example.com",
+    "password": "SecurePass123@"
+  }'
+```
+
+### Update user profile
+```bash
+curl -X PUT http://localhost:8083/users\
+  -H "Authorization: Bearer <your_jwt_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "firstName": "Jane",
+    "lastName": "Johnson",
+    "email": "jane.johnson@example.com",
+    "countryCode": "+91",
+    "phoneNumber": "9876543210",
+    "password": "NewSecurePass123@",
+    "confirmPassword": "NewSecurePass123@",
+    "roleId": 2
+  }'
+```
 ## 🚧 Upcoming Features
 
 - **Unit Testing**: Comprehensive test coverage using JUnit5 and Mockito
