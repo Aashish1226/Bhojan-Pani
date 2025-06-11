@@ -395,7 +395,9 @@ Content-Type: application/json
 **User Not Found (404 Not Found)**
 ```json
 {
-  "error": "User not found"
+  "status": "error",
+  "message": "Invalid email or password.",
+  "errorCode": "INTERNAL_SERVER_ERROR"
 }
 ```
 
@@ -445,7 +447,9 @@ Authorization: Bearer <jwt_token>
 **User Not Found (404 Not Found)**
 ```json
 {
-  "error": "User not found"
+  "status": "error",
+  "message": "User not found with id : ",
+  "errorCode": "INTERNAL_SERVER_ERROR"
 }
 ```
 
@@ -497,7 +501,9 @@ Authorization: Bearer <jwt_token>
 **User Not Found (404 Not Found)**
 ```json
 {
-  "error": "User not found or not deleted"
+  "status": "error",
+  "message": "User not found with id: or is already active",
+  "errorCode": "ACCESS_DENIED"
 }
 ```
 
