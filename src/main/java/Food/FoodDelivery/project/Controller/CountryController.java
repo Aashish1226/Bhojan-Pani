@@ -22,11 +22,6 @@ public class CountryController {
         this.countryService = countryService;
         this.objectMapper = objectMapper;
     }
-    @PostMapping
-    public ResponseEntity<List<CountryResponseDTO>> createCountries(@RequestBody List<CountryRequestDTO> countryRequestDTOList) {
-        List<CountryResponseDTO> createdCountries = countryService.createCountries(countryRequestDTOList);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdCountries);
-    }
 
     @PostMapping("/import")
     public ResponseEntity<String> importAllCountries(@RequestParam("file") MultipartFile file) {
