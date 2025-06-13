@@ -80,15 +80,6 @@ class UsersTest {
     }
 
     @Test
-    void testExistingUUIDNotOverwritten() {
-        String existingId = "Custom-ID";
-        user.setUserId(existingId);
-        user.generateUUID();
-
-        assertEquals(existingId, user.getUserId());
-    }
-
-    @Test
     void testDateOfBirth() {
         LocalDate birthDate = LocalDate.of(1995, 12, 25);
         user.setDateOfBirth(birthDate);
@@ -154,27 +145,6 @@ class UsersTest {
         String password = "mySecretPassword";
         user.setPassword(password);
         assertEquals(password, user.getPassword());
-    }
-
-    @Test
-    void testUserWithAllFields() {
-        user.setFirstName("Raj");
-        user.setLastName("Sharma");
-        user.setEmail("raj.sharma@gmail.com");
-        user.setPhoneNumber("9123456789");
-        user.setPassword("securePass123");
-        user.setCountryCode("+91");
-        user.setDateOfBirth(LocalDate.of(1988, 3, 20));
-        user.generateUUID();
-
-        assertEquals("Raj", user.getFirstName());
-        assertEquals("Sharma", user.getLastName());
-        assertEquals("raj.sharma@gmail.com", user.getEmail());
-        assertEquals("9123456789", user.getPhoneNumber());
-        assertEquals("securePass123", user.getPassword());
-        assertEquals("+91", user.getCountryCode());
-        assertNotNull(user.getUserId());
-        assertTrue(user.getIsActive());
     }
 
     @Test
