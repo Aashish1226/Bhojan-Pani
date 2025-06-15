@@ -1,9 +1,9 @@
 package Food.FoodDelivery.project.DTO.ResponseDTO;
-import Food.FoodDelivery.project.Enum.AddressType;
 import lombok.*;
 
 @Getter
 @Setter
+@Builder
 public class AddressesResponseDto {
     private Long id;
     private String addressLine1;

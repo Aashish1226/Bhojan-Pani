@@ -10,10 +10,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class UserRequestDTOTest {
 
-    private Validator validator;
+    private static Validator validator;
 
-    @BeforeEach
-    void setup() {
+    @BeforeAll
+    static void setUpValidator() {
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
         validator = factory.getValidator();
     }
